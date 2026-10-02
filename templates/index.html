@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#fff7f7">
+    <title>Entre Corazones | Juegos del amor</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: "Segoe UI", Roboto, sans-serif;
+            color: #382b37;
+            background: #fff8f8;
+            font-synthesis: none;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            --rose: #d94f78;
+            --rose-dark: #b93664;
+            --muted: #897b87;
+            --line: #f0e2e7;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            min-width: 320px;
+            min-height: 100vh;
+            margin: 0;
+            background:
+                radial-gradient(ellipse at 8% 12%, rgba(255, 209, 219, .48), transparent 28rem),
+                radial-gradient(ellipse at 96% 48%, rgba(255, 227, 211, .38), transparent 27rem),
+                #fff8f8;
+        }
+
+        button, input, select, textarea { font: inherit; }
+        button { -webkit-tap-highlight-color: transparent; }
+
+        .site-header {
+            width: min(1120px, calc(100% - 48px));
+            height: 76px;
+            margin: auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(224, 201, 210, .56);
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #463442;
+            font-size: .94rem;
+            font-weight: 750;
+            letter-spacing: -.02em;
+            text-decoration: none;
+        }
+
+        .brand-mark {
+            display: grid;
+            width: 35px;
+            height: 35px;
+            place-items: center;
+            border-radius: 12px;
+            background: #f9e1e8;
+            color: var(--rose-dark);
+            font-size: 1.1rem;
+        }
+
+        .header-note {
+            color: var(--muted);
+            font-size: .82rem;
+        }
+
+        .container {
+            width: min(1020px, calc(100% - 40px));
+            margin: 0 auto;
+            padding: 64px 0 70px;
+        }
+
+        .hero {
+            position: relative;
+            max-width: 690px;
+            margin: 0 auto 43px;
+            text-align: center;
+            animation: rise-in .7s both;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 0 17px;
+            color: var(--rose-dark);
+            font-size: .75rem;
+            font-weight: 750;
+            letter-spacing: .13em;
+            text-transform: uppercase;
+        }
+
+        .eyebrow::before, .eyebrow::after {
+            width: 20px;
+            height: 1px;
+            background: #e8a5b8;
+            content: "";
+        }
+
+        h1 {
+            margin: 0;
+            color: #3c2b39;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: clamp(2.8rem, 7vw, 4.6rem);
+            font-weight: 500;
+            letter-spacing: -.065em;
+            line-height: 1.03;
+        }
+
+        h1 span { color: var(--rose); }
+
+        .hero-copy {
+            max-width: 520px;
+            margin: 18px auto 0;
+            color: var(--muted);
+            font-size: 1rem;
+            line-height: 1.65;
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 17px;
+        }
+
+        .section-heading h2 {
+            margin: 0;
+            font-size: 1.05rem;
+            font-weight: 750;
+            letter-spacing: -.025em;
+        }
+
+        .section-heading p {
+            margin: 0;
+            color: var(--muted);
+            font-size: .82rem;
+        }
+
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 13px;
+        }
+
+        .mode-card {
+            position: relative;
+            min-height: 178px;
+            padding: 19px 17px 17px;
+            border: 1px solid #f0e1e6;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, .83);
+            color: inherit;
+            cursor: pointer;
+            text-align: left;
+            transition: border-color .2s, box-shadow .2s, transform .2s, background .2s;
+            animation: rise-in .55s both;
+        }
+
+        .mode-card:nth-child(2) { animation-delay: .08s; }
+        .mode-card:nth-child(3) { animation-delay: .16s; }
+        .mode-card:nth-child(4) { animation-delay: .24s; }
+
+        .mode-card:hover {
+            border-color: #e6b7c5;
+            box-shadow: 0 13px 28px rgba(115, 63, 85, .08);
+            transform: translateY(-3px);
+        }
+
+        .mode-card[aria-pressed="true"] {
+            border-color: #d66b8b;
+            background: #fff9fb;
+            box-shadow: 0 0 0 3px rgba(217, 79, 120, .09), 0 12px 27px rgba(115, 63, 85, .07);
+        }
+
+        .mode-icon {
+            display: grid;
+            width: 42px;
+            height: 42px;
+            margin-bottom: 14px;
+            place-items: center;
+            border-radius: 14px;
+            background: #fbedf1;
+            font-size: 1.3rem;
+            transition: transform .3s;
+        }
+
+        .mode-card:hover .mode-icon { transform: rotate(-7deg) scale(1.08); }
+        .mode-card[data-mode="complete"] .mode-icon { background: #f5effd; }
+        .mode-card[data-mode="tarot"] .mode-icon { background: #f1edfb; }
+        .mode-card[data-mode="zodiac"] .mode-icon { background: #fff3e8; }
+
+        .mode-title {
+            display: block;
+            margin-bottom: 6px;
+            font-size: .91rem;
+            font-weight: 750;
+        }
+
+        .mode-description {
+            display: block;
+            color: var(--muted);
+            font-size: .76rem;
+            line-height: 1.5;
+        }
+
+        .featured-badge {
+            position: absolute;
+            top: 13px;
+            right: 12px;
+            padding: 4px 7px;
+            border-radius: 99px;
+            background: #f9e5eb;
+            color: #a94364;
+            font-size: .59rem;
+            font-weight: 800;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+        }
+
+        .play-area {
+            margin-top: 27px;
+            overflow: hidden;
+            border: 1px solid rgba(235, 217, 224, .85);
+            border-radius: 22px;
+            background: rgba(255, 255, 255, .93);
+            box-shadow: 0 20px 55px rgba(120, 72, 94, .08);
+            animation: rise-in .65s .13s both;
+        }
+
+        .play-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 24px 28px 21px;
+            border-bottom: 1px solid #f2e7eb;
+        }
+
+        .play-symbol {
+            display: grid;
+            width: 44px;
+            height: 44px;
+            flex: 0 0 auto;
+            place-items: center;
+            border-radius: 14px;
+            background: #fbedf1;
+            color: var(--rose-dark);
+            font-size: 1.3rem;
+        }
+
+        .play-header h2 {
+            margin: 0;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 1.42rem;
+            font-weight: 600;
+            letter-spacing: -.035em;
+        }
+
+        .play-header p {
+            margin: 5px 0 0;
+            color: var(--muted);
+            font-size: .83rem;
+        }
+
+        .form-content { padding: 25px 28px 27px; }
+        .mode-form[hidden], #result[hidden], #feedback[hidden] { display: none; }
+
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 17px 18px;
+        }
+
+        .field { min-width: 0; }
+        .field.full { grid-column: 1 / -1; }
+
+        label {
+            display: block;
+            margin: 0 0 7px;
+            color: #564653;
+            font-size: .8rem;
+            font-weight: 700;
+        }
+
+        .field-hint {
+            margin: -2px 0 8px;
+            color: #9a8c96;
+            font-size: .75rem;
+            line-height: 1.45;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            min-height: 46px;
+            padding: 11px 13px;
+            border: 1px solid #eadde3;
+            border-radius: 11px;
+            outline: none;
+            background: #fffcfd;
+            color: #382b37;
+            font-size: .88rem;
+            transition: border-color .16s, box-shadow .16s, background .16s;
+        }
+
+        textarea { min-height: 72px; resize: vertical; }
+        input::placeholder, textarea::placeholder { color: #b7aab2; }
+        input:hover, select:hover, textarea:hover { border-color: #dab6c3; }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--rose);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(217, 79, 120, .11);
+        }
+
+        .submit-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            width: 100%;
+            min-height: 49px;
+            margin-top: 21px;
+            padding: 12px 18px;
+            border: 0;
+            border-radius: 12px;
+            background: linear-gradient(100deg, #df5a80, #c84470);
+            box-shadow: 0 8px 18px rgba(200, 68, 112, .19);
+            color: #fff;
+            cursor: pointer;
+            font-size: .9rem;
+            font-weight: 750;
+            transition: transform .16s, box-shadow .16s, filter .16s;
+        }
+
+        .submit-button:hover { filter: brightness(1.04); box-shadow: 0 11px 22px rgba(200, 68, 112, .26); transform: translateY(-1px); }
+        .submit-button:active { transform: translateY(0); }
+        .submit-button:focus-visible, .mode-card:focus-visible { outline: 3px solid rgba(217, 79, 120, .35); outline-offset: 3px; }
+        .submit-button:disabled { cursor: wait; opacity: .75; transform: none; }
+
+        .form-note {
+            margin: 13px 0 0;
+            color: #a3959e;
+            font-size: .74rem;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        #feedback {
+            margin: 13px 0 0;
+            color: #b93664;
+            font-size: .83rem;
+            line-height: 1.45;
+            text-align: center;
+        }
+
+        #result {
+            margin: 5px 28px 28px;
+            padding: 23px;
+            border: 1px solid #f1dce4;
+            border-radius: 17px;
+            background: linear-gradient(145deg, #fff8fa, #fffdfb);
+            animation: rise-in .4s ease both;
+        }
+
+        .result-top {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            margin-bottom: 17px;
+        }
+
+        .result-emoji { font-size: 2rem; }
+        .result-title { margin: 0; font-size: 1.15rem; letter-spacing: -.025em; }
+        .result-summary { margin: 4px 0 0; color: #796b77; font-size: .85rem; line-height: 1.55; }
+
+        .score-area {
+            display: grid;
+            grid-template-columns: 130px minmax(0, 1fr);
+            align-items: center;
+            gap: 21px;
+            margin: 18px 0;
+            padding: 16px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, .78);
+        }
+
+        .score-main { text-align: center; }
+        .score-value {
+            display: block;
+            color: var(--rose-dark);
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 3.15rem;
+            font-weight: 600;
+            letter-spacing: -.06em;
+            line-height: 1;
+        }
+        .score-caption { display: block; margin-top: 5px; color: var(--muted); font-size: .69rem; }
+        .score-list { display: grid; gap: 10px; }
+        .score-row { display: grid; grid-template-columns: 130px 1fr 31px; align-items: center; gap: 8px; font-size: .73rem; }
+        .score-name { color: #6e5c69; }
+        .score-track { height: 6px; overflow: hidden; border-radius: 9px; background: #f0e5e9; }
+        .score-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #ee9bb0, #ca4d75); transition: width .8s cubic-bezier(.2,.8,.2,1); }
+        .score-number { color: #775967; font-size: .69rem; text-align: right; }
+
+        .reading-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 11px; margin: 18px 0; }
+        .reading-item { padding: 14px; border: 1px solid #f1e4e9; border-radius: 13px; background: rgba(255,255,255,.72); }
+        .reading-item h3 { margin: 0 0 6px; color: #503b4a; font-size: .78rem; }
+        .reading-item p { margin: 0; color: #7d6e79; font-size: .75rem; line-height: 1.55; }
+
+        .tarot-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 19px 0; }
+        .tarot-card {
+            min-height: 196px;
+            padding: 17px 13px;
+            border: 1px solid #e7dced;
+            border-radius: 15px;
+            background: linear-gradient(155deg, #fcf8ff, #fff8fb);
+            text-align: center;
+            animation: card-reveal .65s both;
+            transform-origin: 50% 70%;
+        }
+        .tarot-card:nth-child(2) { animation-delay: .15s; }
+        .tarot-card:nth-child(3) { animation-delay: .3s; }
+        .tarot-position { display: block; color: #9b7da0; font-size: .63rem; font-weight: 750; letter-spacing: .09em; text-transform: uppercase; }
+        .tarot-icon { display: block; margin: 10px 0 6px; font-size: 2.3rem; }
+        .tarot-name { margin: 0 0 6px; color: #573d5e; font-family: Georgia, "Times New Roman", serif; font-size: 1rem; }
+        .tarot-key { margin: 0 0 8px; color: #a0739e; font-size: .67rem; }
+        .tarot-message { margin: 0; color: #796d7c; font-size: .72rem; line-height: 1.5; }
+
+        .advice {
+            margin-top: 17px;
+            padding: 13px 15px;
+            border-left: 3px solid #d96a8b;
+            border-radius: 0 10px 10px 0;
+            background: #fff;
+            color: #6f5c69;
+            font-size: .8rem;
+            line-height: 1.55;
+        }
+        .advice strong { color: #4f3a48; }
+
+        .site-footer {
+            margin-top: 23px;
+            color: #a0939d;
+            font-size: .73rem;
+            line-height: 1.55;
+            text-align: center;
+        }
+
+        @keyframes rise-in {
+            from { opacity: 0; transform: translateY(13px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes card-reveal {
+            0% { opacity: 0; transform: perspective(600px) rotateY(70deg) translateY(8px); }
+            65% { opacity: 1; transform: perspective(600px) rotateY(-7deg) translateY(-2px); }
+            100% { opacity: 1; transform: perspective(600px) rotateY(0) translateY(0); }
+        }
+
+        @media (max-width: 760px) {
+            .container { padding-top: 48px; }
+            .mode-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .mode-card { min-height: 155px; }
+        }
+        @media (max-width: 540px) {
+            .site-header { width: calc(100% - 32px); height: 66px; }
+            .header-note { font-size: .71rem; }
+            .container { width: calc(100% - 30px); padding: 43px 0 48px; }
+            .hero { margin-bottom: 32px; }
+            .hero-copy { font-size: .9rem; }
+            .section-heading { align-items: start; flex-direction: column; gap: 5px; }
+            .mode-grid { gap: 9px; }
+            .mode-card { min-height: 158px; padding: 15px 13px; border-radius: 15px; }
+            .mode-icon { width: 37px; height: 37px; margin-bottom: 11px; border-radius: 12px; }
+            .mode-title { font-size: .83rem; }
+            .mode-description { font-size: .71rem; }
+            .featured-badge { top: 9px; right: 8px; font-size: .53rem; }
+            .play-area { margin-top: 19px; border-radius: 18px; }
+            .play-header { padding: 19px 18px 17px; }
+            .form-content { padding: 20px 18px 22px; }
+            .field-grid { grid-template-columns: 1fr; gap: 14px; }
+            .field.full { grid-column: auto; }
+            #result { margin: 3px 14px 15px; padding: 17px 14px; }
+            .score-area { grid-template-columns: 1fr; gap: 14px; }
+            .score-list { width: 100%; }
+            .score-row { grid-template-columns: 112px 1fr 28px; }
+            .reading-list, .tarot-grid { grid-template-columns: 1fr; }
+            .tarot-card { min-height: 0; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+                transition-duration: .01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <a class="brand" href="/" aria-label="Entre Corazones, inicio">
+            <span class="brand-mark" aria-hidden="true">♥</span>
+            <span>Entre Corazones</span>
+        </a>
+        <span class="header-note">Un rincón para jugar con el amor ✨</span>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <p class="eyebrow">Pequeñas lecturas, grandes sonrisas</p>
+            <h1>Un poco de magia<br> <span>para el corazón.</span></h1>
+            <p class="hero-copy">Elige cómo quieres descubrir tu historia: desde un match rapidito hasta una lectura llena de detalles.</p>
+        </section>
+
+        <section id="modos" aria-labelledby="modes-heading">
+            <div class="section-heading">
+                <h2 id="modes-heading">¿Qué te gustaría probar?</h2>
+                <p>Elige un juego para empezar</p>
+            </div>
+            <div class="mode-grid">
+                <button class="mode-card" type="button" data-mode="names" aria-pressed="true">
+                    <span class="featured-badge">Favorito</span>
+                    <span class="mode-icon" aria-hidden="true">💘</span>
+                    <span class="mode-title">Match de nombres</span>
+                    <span class="mode-description">Dos nombres y una respuesta divertida. Sin vueltas.</span>
+                </button>
+                <button class="mode-card" type="button" data-mode="complete" aria-pressed="false">
+                    <span class="mode-icon" aria-hidden="true">💌</span>
+                    <span class="mode-title">Lectura completa</span>
+                    <span class="mode-description">Fechas, intereses y expectativas para un resultado más profundo.</span>
+                </button>
+                <button class="mode-card" type="button" data-mode="tarot" aria-pressed="false">
+                    <span class="mode-icon" aria-hidden="true">🔮</span>
+                    <span class="mode-title">Tarot del amor</span>
+                    <span class="mode-description">Tres cartas simbólicas para reflexionar sobre tu pregunta.</span>
+                </button>
+                <button class="mode-card" type="button" data-mode="zodiac" aria-pressed="false">
+                    <span class="mode-icon" aria-hidden="true">✨</span>
+                    <span class="mode-title">Compatibilidad zodiacal</span>
+                    <span class="mode-description">Descubre sus signos y cómo podrían complementarse.</span>
+                </button>
+            </div>
+        </section>
+
+        <section class="play-area" aria-labelledby="play-title">
+            <div class="play-header">
+                <span class="play-symbol" id="play-symbol" aria-hidden="true">💘</span>
+                <div>
+                    <h2 id="play-title">Match de nombres</h2>
+                    <p id="play-description">Una respuesta rápida para dos nombres.</p>
+                </div>
+            </div>
+            <div class="form-content">
+                <form class="mode-form" data-form="names">
+                    <div class="field-grid">
+                        <div class="field">
+                            <label for="quick-name1">Tu nombre</label>
+                            <input id="quick-name1" name="nombre1" type="text" maxlength="80" placeholder="Por ejemplo, Alex" autocomplete="given-name" required>
+                        </div>
+                        <div class="field">
+                            <label for="quick-name2">Su nombre</label>
+                            <input id="quick-name2" name="nombre2" type="text" maxlength="80" placeholder="Por ejemplo, Sam" autocomplete="off" required>
+                        </div>
+                    </div>
+                    <button class="submit-button" type="submit">♥ &nbsp; Calcular compatibilidad</button>
+                    <p class="form-note">Sin presión: el amor no se mide en porcentajes 😉</p>
+                </form>
+
+                <form class="mode-form" data-form="complete" hidden>
+                    <div class="field-grid">
+                        <div class="field">
+                            <label for="complete-name1">Tu nombre</label>
+                            <input id="complete-name1" name="nombre1" type="text" maxlength="80" placeholder="Tu nombre" required>
+                        </div>
+                        <div class="field">
+                            <label for="complete-name2">Su nombre</label>
+                            <input id="complete-name2" name="nombre2" type="text" maxlength="80" placeholder="Su nombre" required>
+                        </div>
+                        <div class="field">
+                            <label for="complete-date1">Tu fecha de nacimiento</label>
+                            <input id="complete-date1" name="fecha1" type="date" required>
+                        </div>
+                        <div class="field">
+                            <label for="complete-date2">Su fecha de nacimiento</label>
+                            <input id="complete-date2" name="fecha2" type="date" required>
+                        </div>
+                        <div class="field">
+                            <label for="goal1">¿Qué buscas tú?</label>
+                            <select id="goal1" name="objetivo1" required>
+                                <option value="">Elige una opción</option>
+                                <option value="conocer">Conocer a alguien sin prisa</option>
+                                <option value="serio">Una relación estable</option>
+                                <option value="aventura">Una aventura divertida</option>
+                                <option value="amistad">Una amistad especial</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label for="goal2">¿Qué busca esa persona?</label>
+                            <select id="goal2" name="objetivo2" required>
+                                <option value="">Elige una opción</option>
+                                <option value="conocer">Conocer a alguien sin prisa</option>
+                                <option value="serio">Una relación estable</option>
+                                <option value="aventura">Una aventura divertida</option>
+                                <option value="amistad">Una amistad especial</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label for="interests1">Cosas que te gustan</label>
+                            <textarea id="interests1" name="intereses1" maxlength="240" placeholder="Ej.: cine, cocinar, caminar..." required></textarea>
+                        </div>
+                        <div class="field">
+                            <label for="interests2">Cosas que le gustan</label>
+                            <textarea id="interests2" name="intereses2" maxlength="240" placeholder="Ej.: música, caminar, viajar..." required></textarea>
+                        </div>
+                    </div>
+                    <button class="submit-button" type="submit">✦ &nbsp; Crear lectura completa</button>
+                    <p class="form-note">Tus datos solo se usan para crear esta lectura lúdica.</p>
+                </form>
+
+                <form class="mode-form" data-form="tarot" hidden>
+                    <div class="field-grid">
+                        <div class="field full">
+                            <label for="tarot-name">Tu nombre <span style="font-weight:400;color:#9a8c96">(opcional)</span></label>
+                            <input id="tarot-name" name="nombre" type="text" maxlength="80" placeholder="¿Cómo te llamamos?">
+                        </div>
+                        <div class="field full">
+                            <label for="tarot-question">¿Qué tema quieres explorar?</label>
+                            <p class="field-hint">Puede ser una pregunta sobre tu vida amorosa, un vínculo o cómo abrirte a nuevas conexiones.</p>
+                            <textarea id="tarot-question" name="pregunta" maxlength="180" placeholder="Ej.: ¿Qué puedo hacer para construir una conexión más sana?" required></textarea>
+                        </div>
+                    </div>
+                    <button class="submit-button" type="submit">🔮 &nbsp; Revelar mis cartas</button>
+                    <p class="form-note">Lectura simbólica para reflexionar: no predice el futuro.</p>
+                </form>
+
+                <form class="mode-form" data-form="zodiac" hidden>
+                    <div class="field-grid">
+                        <div class="field">
+                            <label for="zodiac-name1">Tu nombre <span style="font-weight:400;color:#9a8c96">(opcional)</span></label>
+                            <input id="zodiac-name1" name="nombre1" type="text" maxlength="80" placeholder="Tu nombre">
+                        </div>
+                        <div class="field">
+                            <label for="zodiac-name2">Su nombre <span style="font-weight:400;color:#9a8c96">(opcional)</span></label>
+                            <input id="zodiac-name2" name="nombre2" type="text" maxlength="80" placeholder="Su nombre">
+                        </div>
+                        <div class="field">
+                            <label for="zodiac-date1">Tu fecha de nacimiento</label>
+                            <input id="zodiac-date1" name="fecha1" type="date" required>
+                        </div>
+                        <div class="field">
+                            <label for="zodiac-date2">Su fecha de nacimiento</label>
+                            <input id="zodiac-date2" name="fecha2" type="date" required>
+                        </div>
+                    </div>
+                    <button class="submit-button" type="submit">✧ &nbsp; Leer sus signos</button>
+                    <p class="form-note">Una mirada astrológica de entretenimiento, no una regla para las relaciones.</p>
+                </form>
+                <p id="feedback" role="alert" hidden></p>
+            </div>
+
+            <section id="result" aria-live="polite" aria-label="Resultado de la lectura" hidden></section>
+        </section>
+
+        <footer class="site-footer">Hecho para divertirse y conversar. Las lecturas son simbólicas: lo más importante siempre es cómo se sienten y se tratan. 💗</footer>
+    </main>
+
+    <script>
+        const modes = {
+            names: { title: 'Match de nombres', description: 'Una respuesta rápida para dos nombres.', icon: '💘', endpoint: '/api/calcular' },
+            complete: { title: 'Lectura completa', description: 'Una mirada más detallada a lo que comparten.', icon: '💌', endpoint: '/api/lectura-completa' },
+            tarot: { title: 'Tarot del amor', description: 'Tres cartas simbólicas para explorar tu pregunta.', icon: '🔮', endpoint: '/api/tarot' },
+            zodiac: { title: 'Compatibilidad zodiacal', description: 'Una lectura de sus signos y energías.', icon: '✨', endpoint: '/api/zodiacal' }
+        };
+        const modeCards = document.querySelectorAll('.mode-card');
+        const forms = document.querySelectorAll('.mode-form');
+        const result = document.getElementById('result');
+        const feedback = document.getElementById('feedback');
+        const playTitle = document.getElementById('play-title');
+        const playDescription = document.getElementById('play-description');
+        const playSymbol = document.getElementById('play-symbol');
+        const currentMode = () => document.querySelector('.mode-card[aria-pressed="true"]').dataset.mode;
+
+        modeCards.forEach((card) => {
+            card.addEventListener('click', () => {
+                modeCards.forEach((item) => item.setAttribute('aria-pressed', String(item === card)));
+                const mode = modes[card.dataset.mode];
+                forms.forEach((form) => { form.hidden = form.dataset.form !== card.dataset.mode; });
+                playTitle.textContent = mode.title;
+                playDescription.textContent = mode.description;
+                playSymbol.textContent = mode.icon;
+                result.hidden = true;
+                feedback.hidden = true;
+                document.querySelector('.play-area').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+        });
+
+        function makeElement(tag, className, text) {
+            const element = document.createElement(tag);
+            if (className) element.className = className;
+            if (text !== undefined) element.textContent = text;
+            return element;
+        }
+
+        function renderAdvice(parent, text) {
+            const advice = makeElement('p', 'advice');
+            advice.append(makeElement('strong', '', 'Una idea para llevarte: '), document.createTextNode(text));
+            parent.append(advice);
+        }
+
+        function renderResult(mode, data) {
+            result.replaceChildren();
+            const top = makeElement('div', 'result-top');
+            top.append(
+                makeElement('span', 'result-emoji', data.emoji || (mode === 'tarot' ? '🔮' : '✨')),
+                makeElement('div')
+            );
+            const heading = top.lastElementChild;
+            heading.append(
+                makeElement('h2', 'result-title', data.titulo || (data.porcentaje !== undefined ? 'Su resultado' : 'Tu lectura')),
+                makeElement('p', 'result-summary', data.resumen || data.mensaje || '')
+            );
+            result.append(top);
+
+            if (data.porcentaje !== undefined) {
+                const scoreArea = makeElement('div', 'score-area');
+                const scoreMain = makeElement('div', 'score-main');
+                scoreMain.append(
+                    makeElement('strong', 'score-value', `${data.porcentaje}%`),
+                    makeElement('span', 'score-caption', 'afinidad simbólica')
+                );
+                scoreArea.append(scoreMain);
+                if (data.dimensiones) {
+                    const list = makeElement('div', 'score-list');
+                    data.dimensiones.forEach((dimension) => {
+                        const row = makeElement('div', 'score-row');
+                        const track = makeElement('span', 'score-track');
+                        const fill = makeElement('span', 'score-fill');
+                        fill.style.width = `${dimension.valor}%`;
+                        track.append(fill);
+                        row.append(
+                            makeElement('span', 'score-name', dimension.nombre),
+                            track,
+                            makeElement('span', 'score-number', `${dimension.valor}%`)
+                        );
+                        list.append(row);
+                    });
+                    scoreArea.append(list);
+                } else {
+                    scoreArea.style.gridTemplateColumns = '1fr';
+                }
+                result.append(scoreArea);
+            }
+
+            if (data.lecturas) {
+                const list = makeElement('div', 'reading-list');
+                data.lecturas.forEach((lectura) => {
+                    const item = makeElement('article', 'reading-item');
+                    item.append(makeElement('h3', '', lectura.titulo), makeElement('p', '', lectura.texto));
+                    list.append(item);
+                });
+                result.append(list);
+            }
+
+            if (data.cartas) {
+                const grid = makeElement('div', 'tarot-grid');
+                data.cartas.forEach((carta) => {
+                    const item = makeElement('article', 'tarot-card');
+                    item.append(
+                        makeElement('span', 'tarot-position', carta.posicion),
+                        makeElement('span', 'tarot-icon', carta.emoji),
+                        makeElement('h3', 'tarot-name', carta.nombre),
+                        makeElement('p', 'tarot-key', carta.clave),
+                        makeElement('p', 'tarot-message', carta.mensaje)
+                    );
+                    grid.append(item);
+                });
+                result.append(grid);
+            }
+
+            if (data.consejo) renderAdvice(result, data.consejo);
+            result.hidden = false;
+        }
+
+        forms.forEach((form) => {
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const mode = currentMode();
+                const button = form.querySelector('.submit-button');
+                const originalLabel = button.textContent;
+                const payload = Object.fromEntries(new FormData(form).entries());
+                feedback.hidden = true;
+                result.hidden = true;
+                button.disabled = true;
+                button.textContent = 'Preparando tu lectura…';
+
+                try {
+                    const response = await fetch(modes[mode].endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error || 'No se pudo preparar la lectura.');
+                    renderResult(mode, data);
+                    result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } catch (error) {
+                    feedback.textContent = error.message || 'Hubo un problema de conexión. Inténtalo de nuevo.';
+                    feedback.hidden = false;
+                } finally {
+                    button.disabled = false;
+                    button.textContent = originalLabel;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

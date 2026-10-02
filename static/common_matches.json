@@ -1,0 +1,27 @@
+[
+  {
+    "names": ["Ana", "Luis"],
+    "porcentaje": 72,
+    "mensaje": "Hay una chispa simbólica y varias oportunidades para conocerse mejor."
+  },
+  {
+    "names": ["Alex", "Sam"],
+    "porcentaje": 84,
+    "mensaje": "Una dupla de energía curiosa: la historia la escriben con humor y respeto."
+  },
+  {
+    "names": ["Maria", "Jose"],
+    "porcentaje": 79,
+    "mensaje": "Una combinación con potencial para una conversación cálida y sincera."
+  },
+  {
+    "names": ["Sofia", "Mateo"],
+    "porcentaje": 88,
+    "mensaje": "Un match de juego que invita a compartir una aventura tranquila."
+  },
+  {
+    "names": ["Valentina", "Santiago"],
+    "porcentaje": 67,
+    "mensaje": "Hay curiosidad por explorar, sin apurarse a sacar conclusiones."
+  }
+]

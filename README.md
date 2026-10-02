@@ -21,9 +21,9 @@ Conecta este repositorio como **Web Service** con:
 - Build command: `pip install -r requirements.txt`
 - Start command: `gunicorn app:app`
 
-En **Environment**, añade `OPENAI_API_KEY` con una clave de API de OpenAI. Opcionalmente, configura `OPENAI_MODEL` (por defecto `gpt-4o-mini`). Nunca incluyas la clave en GitHub ni en el HTML.
+En **Environment**, añade `OPENAI_API_KEY` con una clave de API de OpenAI. La aplicación usa Responses API y por defecto el modelo `gpt-6-luna`; puedes sobrescribirlo con `OPENAI_MODEL` si el identificador que aparece en tu proyecto es otro. Nunca incluyas la clave en GitHub ni en el HTML.
 
-Las funciones con IA responden con un aviso si la clave no está configurada. El proveedor puede cobrar por las solicitudes; configura límites de uso en tu proyecto de OpenAI y revisa su política de privacidad antes de compartir la aplicación.
+Las funciones con IA responden con un aviso si la clave no está configurada. Las solicitudes se hacen con `store=False`; aun así, se envían al proveedor para que genere la respuesta. El proveedor puede cobrar por las solicitudes; configura límites de uso en tu proyecto de OpenAI y revisa su política de privacidad antes de compartir la aplicación.
 
 ## Privacidad del chat
 

@@ -145,15 +145,14 @@ def solicitar_respuesta_ia(instrucciones, mensajes):
             "error": "La IA todavía no está configurada. Añade OPENAI_API_KEY a las variables de entorno del servidor."
         }), 503)
 
-    modelo = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip() or "gpt-4o-mini"
+    modelo = os.getenv("OPENAI_MODEL", "gpt-6-luna").strip() or "gpt-6-luna"
     try:
-        respuesta = cliente.chat.completions.create(
+        respuesta = cliente.responses.create(
             model=modelo,
-            messages=[
-                {"role": "system", "content": instrucciones},
-                *mensajes,
-            ],
-            max_completion_tokens=650,
+            instructions=instrucciones,
+            input=mensajes,
+            max_output_tokens=650,
+            store=False,
         )
     except OpenAIError:
         app.logger.exception("Falló una solicitud al servicio de IA.")
@@ -161,12 +160,7 @@ def solicitar_respuesta_ia(instrucciones, mensajes):
             "error": "No pudimos conectar con la IA ahora. Inténtalo de nuevo en unos momentos."
         }), 502)
 
-    if not respuesta.choices:
-        app.logger.error("El servicio de IA devolvió una respuesta sin opciones.")
-        return None, (jsonify({
-            "error": "La IA no generó una respuesta. Inténtalo de nuevo."
-        }), 502)
-    contenido = respuesta.choices[0].message.content
+    contenido = respuesta.output_text
     if not contenido or not contenido.strip():
         app.logger.error("El servicio de IA devolvió una respuesta vacía.")
         return None, (jsonify({

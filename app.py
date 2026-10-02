@@ -1,11 +1,36 @@
 import hashlib
+import os
 import random
 import re
 from datetime import date
 
 from flask import Flask, jsonify, render_template, request
+from openai import OpenAI, OpenAIError
 
 app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 32 * 1024
+
+MAX_CHAT_MESSAGES = 12
+MAX_CHAT_MESSAGE_LENGTH = 1500
+MAX_READING_QUESTION_LENGTH = 500
+LOVE_CHAT_PROMPT = (
+    "Eres Entre Corazones, un acompañante conversacional empático y cercano que responde en español "
+    "sobre vínculos, citas, rupturas, autoestima y comunicación. Escucha sin juzgar, refleja lo que la "
+    "persona cuenta y ofrece ideas concretas como posibilidades, no órdenes. No afirmes saber lo que "
+    "otra persona siente, no predigas el futuro ni presentes compatibilidad, tarot o astrología como "
+    "hechos. No diagnostiques ni sustituyas terapia. Evita fomentar dependencia o insistir en una "
+    "relación dañina; respeta límites y consentimiento. Si la persona describe peligro inmediato o "
+    "violencia, prioriza su seguridad y anímala a contactar servicios de emergencia o alguien de "
+    "confianza en su zona. No pidas datos personales innecesarios. Mantén las respuestas cálidas, "
+    "específicas y breves, e invita a profundizar con una pregunta cuando ayude."
+)
+
+READING_PROMPTS = {
+    "names": "match de nombres",
+    "complete": "lectura completa de afinidad",
+    "tarot": "tirada simbólica de tarot del amor",
+    "zodiac": "lectura simbólica de compatibilidad zodiacal",
+}
 
 
 SIGNOS = [
@@ -100,6 +125,95 @@ def validar_fecha(valor, campo):
 def obtener_datos_json():
     datos = request.get_json(silent=True)
     return datos if isinstance(datos, dict) else {}
+
+
+def crear_cliente_openai():
+    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+    if not api_key:
+        return None
+    return OpenAI(
+        api_key=api_key,
+        timeout=25.0,
+        max_retries=1,
+    )
+
+
+def solicitar_respuesta_ia(instrucciones, mensajes):
+    cliente = crear_cliente_openai()
+    if cliente is None:
+        return None, (jsonify({
+            "error": "La IA todavía no está configurada. Añade OPENAI_API_KEY a las variables de entorno del servidor."
+        }), 503)
+
+    modelo = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip() or "gpt-4o-mini"
+    try:
+        respuesta = cliente.chat.completions.create(
+            model=modelo,
+            messages=[
+                {"role": "system", "content": instrucciones},
+                *mensajes,
+            ],
+            max_completion_tokens=650,
+        )
+    except OpenAIError:
+        app.logger.exception("Falló una solicitud al servicio de IA.")
+        return None, (jsonify({
+            "error": "No pudimos conectar con la IA ahora. Inténtalo de nuevo en unos momentos."
+        }), 502)
+
+    if not respuesta.choices:
+        app.logger.error("El servicio de IA devolvió una respuesta sin opciones.")
+        return None, (jsonify({
+            "error": "La IA no generó una respuesta. Inténtalo de nuevo."
+        }), 502)
+    contenido = respuesta.choices[0].message.content
+    if not contenido or not contenido.strip():
+        app.logger.error("El servicio de IA devolvió una respuesta vacía.")
+        return None, (jsonify({
+            "error": "La IA no generó una respuesta. Inténtalo de nuevo."
+        }), 502)
+    return contenido.strip(), None
+
+
+def texto_de_campo(datos, campo, limite=500):
+    valor = datos.get(campo, "")
+    return valor.strip()[:limite] if isinstance(valor, str) else ""
+
+
+def construir_contexto_lectura(modo, resultado):
+    lineas = [f"Modo: {READING_PROMPTS[modo]}."]
+    resumen = texto_de_campo(resultado, "resumen", 700)
+    consejo = texto_de_campo(resultado, "consejo", 500)
+    if resumen:
+        lineas.append(f"Resumen inicial: {resumen}")
+
+    porcentaje = resultado.get("porcentaje")
+    if isinstance(porcentaje, int) and not isinstance(porcentaje, bool) and 0 <= porcentaje <= 100:
+        lineas.append(f"Porcentaje lúdico de afinidad: {porcentaje}%. Aclara que no es una medida científica.")
+
+    lecturas = resultado.get("lecturas")
+    if isinstance(lecturas, list):
+        for lectura in lecturas[:4]:
+            if isinstance(lectura, dict):
+                titulo = texto_de_campo(lectura, "titulo", 100)
+                texto = texto_de_campo(lectura, "texto", 500)
+                if titulo or texto:
+                    lineas.append(f"{titulo}: {texto}")
+
+    cartas = resultado.get("cartas")
+    if isinstance(cartas, list):
+        for carta in cartas[:3]:
+            if isinstance(carta, dict):
+                posicion = texto_de_campo(carta, "posicion", 100)
+                nombre = texto_de_campo(carta, "nombre", 100)
+                clave = texto_de_campo(carta, "clave", 200)
+                mensaje = texto_de_campo(carta, "mensaje", 400)
+                if nombre or mensaje:
+                    lineas.append(f"{posicion} — {nombre} ({clave}): {mensaje}")
+
+    if consejo:
+        lineas.append(f"Consejo inicial: {consejo}")
+    return "\n".join(lineas)
 
 
 def obtener_mensaje_y_emoji(puntaje_de_amor):
@@ -240,6 +354,61 @@ def zodiacal():
         ],
         "consejo": "La astrología puede ser un juego para conversar; la compatibilidad real se descubre con respeto, comunicación y tiempo."
     })
+
+
+@app.route("/api/chat", methods=["POST"])
+def chat():
+    datos = obtener_datos_json()
+    mensajes = datos.get("mensajes")
+    if not isinstance(mensajes, list) or not mensajes or len(mensajes) > MAX_CHAT_MESSAGES:
+        return jsonify({"error": f"Envía entre 1 y {MAX_CHAT_MESSAGES} mensajes recientes."}), 400
+
+    mensajes_validos = []
+    for mensaje in mensajes:
+        if not isinstance(mensaje, dict) or mensaje.get("role") not in ("user", "assistant"):
+            return jsonify({"error": "La conversación contiene un mensaje con formato no válido."}), 400
+        contenido = mensaje.get("content")
+        if not isinstance(contenido, str) or not contenido.strip() or len(contenido) > MAX_CHAT_MESSAGE_LENGTH:
+            return jsonify({"error": f"Cada mensaje debe tener entre 1 y {MAX_CHAT_MESSAGE_LENGTH} caracteres."}), 400
+        mensajes_validos.append({"role": mensaje["role"], "content": contenido.strip()})
+
+    if mensajes_validos[-1]["role"] != "user":
+        return jsonify({"error": "El último mensaje debe ser tuyo para poder responder."}), 400
+
+    respuesta, error = solicitar_respuesta_ia(LOVE_CHAT_PROMPT, mensajes_validos)
+    if error:
+        return error
+    return jsonify({"respuesta": respuesta})
+
+
+@app.route("/api/profundizar", methods=["POST"])
+def profundizar_lectura():
+    datos = obtener_datos_json()
+    modo = datos.get("modo")
+    resultado = datos.get("resultado")
+    pregunta = texto_de_campo(datos, "pregunta", MAX_READING_QUESTION_LENGTH)
+    if modo not in READING_PROMPTS or not isinstance(resultado, dict):
+        return jsonify({"error": "La lectura enviada no es válida."}), 400
+    contexto = construir_contexto_lectura(modo, resultado)
+    if len(contexto) > 5000:
+        return jsonify({"error": "La lectura contiene demasiada información."}), 400
+
+    instrucciones = (
+        LOVE_CHAT_PROMPT
+        + " La persona quiere profundizar en una lectura de entretenimiento. Usa solo los datos incluidos "
+        "como punto de partida, no inventes hechos sobre ella ni sobre otras personas. Entrega una "
+        "interpretación cálida y concreta en 2 o 3 párrafos y termina con una pregunta de reflexión "
+        "o una acción pequeña y saludable. Deja claro que cualquier porcentaje o lectura es simbólico "
+        "y no determina una relación."
+    )
+    contenido = f"Lectura para interpretar:\n{contexto}"
+    if pregunta:
+        contenido += f"\nLo que quiere explorar la persona: {pregunta}"
+
+    respuesta, error = solicitar_respuesta_ia(instrucciones, [{"role": "user", "content": contenido}])
+    if error:
+        return error
+    return jsonify({"interpretacion": respuesta})
 
 
 if __name__ == "__main__":
